@@ -7,6 +7,14 @@ public class Util {
     throw (T) throwable;
   }
 
+  public static String zeroPrefixUntilLength(int target, int length) {
+    String value = Integer.toString(target);
+    int zerosToAdd = length - value.length();
+    String prefix = "0".repeat(zerosToAdd);
+
+    return prefix + value;
+  }
+
   private Util() {
 
   }

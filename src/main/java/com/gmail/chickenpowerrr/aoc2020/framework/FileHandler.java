@@ -10,10 +10,11 @@ import java.util.stream.Stream;
 public class FileHandler {
 
   public Stream<String> readFileLines(String fileName) {
-    try (InputStream inputStream = getClass().getResourceAsStream(fileName);
+    try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-      return bufferedReader.lines();
+      String[] lines = bufferedReader.lines().toArray(String[]::new);
+      return Stream.of(lines);
     } catch (IOException e) {
       return Util.sneakyThrow(e);
     }
