@@ -19,7 +19,6 @@
     <maven.dependency.annotations.version>12.0</maven.dependency.annotations.version>
   </properties>
 
-
   <build>
     <defaultGoal>clean package verify</defaultGoal>
 
