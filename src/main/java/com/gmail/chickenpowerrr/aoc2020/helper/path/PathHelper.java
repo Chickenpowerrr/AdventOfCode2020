@@ -56,6 +56,4 @@ public class PathHelper {
 
     return paths;
   }
-
-
 }
