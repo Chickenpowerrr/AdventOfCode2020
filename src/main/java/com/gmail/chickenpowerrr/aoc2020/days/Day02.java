@@ -17,24 +17,31 @@ public class Day02 implements Day {
         .map(passwordRule -> {
           String[] parts = passwordRule.split(" ");
           String[] occurrencesParts = parts[0].split("-");
-          return new Password(Integer.parseInt(occurrencesParts[0]),
+          return new RentalPassword(Integer.parseInt(occurrencesParts[0]),
               Integer.parseInt(occurrencesParts[1]), parts[1].substring(0, parts[1].length() - 1),
               parts[2]);
-        }).filter(Password::isValid).count());
+        }).filter(RentalPassword::isValid).count());
   }
 
   @Override
   public void partTwo() {
-
+    System.out.println(this.fileHelper.readFileLines("day02/input")
+        .map(passwordRule -> {
+          String[] parts = passwordRule.split(" ");
+          String[] occurrencesParts = parts[0].split("-");
+          return new CorporatePassword(Integer.parseInt(occurrencesParts[0]),
+              Integer.parseInt(occurrencesParts[1]), parts[1].charAt(0),
+              parts[2]);
+        }).filter(CorporatePassword::isValid).count());
   }
 
-  private static class Password {
+  private static class RentalPassword {
     private final int minOccurrences;
     private final int maxOccurrences;
     private final String mandatoryPattern;
     private final String password;
 
-    public Password(int minOccurrences, int maxOccurrences, String mandatoryPattern,
+    public RentalPassword(int minOccurrences, int maxOccurrences, String mandatoryPattern,
         String password) {
       this.minOccurrences = minOccurrences;
       this.maxOccurrences = maxOccurrences;
@@ -52,6 +59,34 @@ public class Day02 implements Day {
       }
 
       return occurrences >= this.minOccurrences && occurrences <= this.maxOccurrences;
+    }
+  }
+
+  private static class CorporatePassword {
+    private final int firstPosition;
+    private final int secondPosition;
+    private final char targetCharacter;
+    private final String password;
+
+    public CorporatePassword(int firstPosition, int secondPosition, char targetCharacter,
+        String password) {
+      this.firstPosition = firstPosition;
+      this.secondPosition = secondPosition;
+      this.targetCharacter = targetCharacter;
+      this.password = password;
+    }
+
+    public boolean isValid() {
+      int occurrences = 0;
+      if (this.password.charAt(this.firstPosition - 1) == this.targetCharacter) {
+        occurrences++;
+      }
+
+      if (this.password.charAt(this.secondPosition - 1) == this.targetCharacter) {
+        occurrences++;
+      }
+
+      return occurrences == 1;
     }
   }
 }
