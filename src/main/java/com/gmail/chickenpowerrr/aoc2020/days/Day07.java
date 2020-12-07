@@ -67,6 +67,20 @@ public class Day07 implements Day {
     return currentParents;
   }
 
+  private int getBagCount(String target, Map<String, Map<String, Integer>> containers) {
+    if (!containers.containsKey(target)) {
+      return 1;
+    }
+
+    Map<String, Integer> children = containers.get(target);
+    int bagCount = 1;
+    for (Map.Entry<String, Integer> entry : children.entrySet()) {
+      bagCount += entry.getValue() * getBagCount(entry.getKey(), containers);
+    }
+
+    return bagCount;
+  }
+
   @Override
   public void partOne() {
     System.out.println(getFamilyTree("shiny gold", getParents(getContainers())).size());
@@ -74,6 +88,6 @@ public class Day07 implements Day {
 
   @Override
   public void partTwo() {
-
+    System.out.println(getBagCount("shiny gold", getContainers()) - 1);
   }
 }
