@@ -13,21 +13,14 @@ public class Day08 implements Day {
     this.fileHelper = new FileHelper();
   }
 
-  @Override
-  public void partOne() {
-    List<Instruction> instructions = this.fileHelper.readFileLines("day08/input")
-        .map(line -> new Instruction(line.split(" ")[0],
-            Integer.parseInt(line.split(" ")[1])))
-        .collect(Collectors.toList());
-
+  private ExecutionResult executeProgram(List<Instruction> instructions) {
     int counter = 0;
 
     boolean[] visited = new boolean[instructions.size()];
 
     for (int cursor = 0; cursor < instructions.size(); cursor++) {
       if (visited[cursor]) {
-        System.out.println(counter);
-        return;
+        return new ExecutionResult(true, counter);
       }
 
       visited[cursor] = true;
@@ -42,11 +35,61 @@ public class Day08 implements Day {
           break;
       }
     }
+
+    return new ExecutionResult(false, counter);
+  }
+
+  @Override
+  public void partOne() {
+    List<Instruction> instructions = this.fileHelper.readFileLines("day08/input")
+        .map(line -> new Instruction(line.split(" ")[0],
+            Integer.parseInt(line.split(" ")[1])))
+        .collect(Collectors.toList());
+
+    System.out.println(executeProgram(instructions).getCounter());
   }
 
   @Override
   public void partTwo() {
+    List<Instruction> instructions = this.fileHelper.readFileLines("day08/input")
+        .map(line -> new Instruction(line.split(" ")[0],
+            Integer.parseInt(line.split(" ")[1])))
+        .collect(Collectors.toList());
 
+    for (int i = 0; i < instructions.size(); i++) {
+      Instruction previousInstruction = instructions.get(i);
+      if (previousInstruction.getName().equals("jmp")) {
+        instructions.set(i, new Instruction("nop", 0));
+      } else if (previousInstruction.getName().equals("nop")) {
+        instructions.set(i, new Instruction("jmp", previousInstruction.getArgument()));
+      }
+
+      ExecutionResult executionResult = executeProgram(instructions);
+      if (!executionResult.isStuck()) {
+        System.out.println(executionResult.getCounter());
+        break;
+      }
+
+      instructions.set(i, previousInstruction);
+    }
+  }
+
+  private static class ExecutionResult {
+    private final boolean stuck;
+    private final int counter;
+
+    public ExecutionResult(boolean stuck, int counter) {
+      this.stuck = stuck;
+      this.counter = counter;
+    }
+
+    public int getCounter() {
+      return counter;
+    }
+
+    public boolean isStuck() {
+      return stuck;
+    }
   }
 
   private static class Instruction {
