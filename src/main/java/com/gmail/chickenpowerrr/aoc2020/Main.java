@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 public class Main {
 
-  private static final int DAY = 11;
+  private static final int DAY = 12;
 
   public static void main(String[] args) throws Throwable {
     Main main = new Main();
