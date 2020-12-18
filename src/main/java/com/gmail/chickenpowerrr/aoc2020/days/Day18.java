@@ -3,9 +3,11 @@ package com.gmail.chickenpowerrr.aoc2020.days;
 import com.gmail.chickenpowerrr.aoc2020.framework.Day;
 import com.gmail.chickenpowerrr.aoc2020.helper.file.FileHelper;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 
 public class Day18 implements Day {
@@ -20,19 +22,25 @@ public class Day18 implements Day {
   public void partOne() {
     System.out.println(this.fileHelper.readFileLines("day18/input")
         .mapToLong(line ->
-            parseExpression(line, Map.of("*", (a, b) -> a * b, "+", Long::sum)))
+            parseExpression(line, Map.of("*", (a, b) -> a * b, "+", Long::sum),
+                this::parseSimpleLine))
         .sum());
   }
 
   @Override
   public void partTwo() {
-
+    System.out.println(this.fileHelper.readFileLines("day18/input")
+        .mapToLong(line ->
+            parseExpression(line, Map.of("*", (a, b) -> a * b, "+", Long::sum),
+                this::parseAdvancedLine))
+        .sum());
   }
 
   private long parseExpression(String line,
-      Map<String, BinaryOperator<Long>> operators) {
+      Map<String, BinaryOperator<Long>> operators,
+      BiFunction<String, Map<String, BinaryOperator<Long>>, Long> simpleExpressionSolver) {
     if (!line.contains("(")) {
-      return parseSimpleLine(line, operators);
+      return simpleExpressionSolver.apply(line, operators);
     }
 
     String nextLine = line;
@@ -40,12 +48,12 @@ public class Day18 implements Day {
 
     for (String part : parts) {
       if (!part.contains("(")) {
-        long simpleLine = parseSimpleLine(part, operators);
+        long simpleLine = simpleExpressionSolver.apply(part, operators);
         nextLine = nextLine.replace("(" + part + ")", Long.toString(simpleLine));
       }
     }
 
-    return parseExpression(nextLine, operators);
+    return parseExpression(nextLine, operators, simpleExpressionSolver);
   }
 
   private long parseSimpleLine(String line,
@@ -58,6 +66,24 @@ public class Day18 implements Day {
     }
 
     return result;
+  }
+
+  private long parseAdvancedLine(String line, Map<String, BinaryOperator<Long>> operators) {
+    String[] parts = line.split(" ");
+
+    for (int i = 0; i < parts.length - 1; i += 2) {
+      if (parts[i + 1].equals("+")) {
+        String value = Long.toString(Long.parseLong(parts[i]) + Long.parseLong(parts[i + 2]));
+        String nextLine = (String.join(" ",
+            Arrays.copyOf(parts, i)) + " " + value + " "
+            + String.join(" ", Arrays.copyOfRange(parts, i + 3, parts.length)))
+            .strip();
+
+        return parseAdvancedLine(nextLine, operators);
+      }
+    }
+
+    return parseSimpleLine(line, operators);
   }
 
   private List<String> parseParts(String line) {
@@ -73,46 +99,6 @@ public class Day18 implements Day {
       }
     }
 
-    if (!parts.contains(line)) {
-      parts.add(line);
-    }
-
     return parts;
-  }
-
-  private static class CombinedExpression implements ExpressionPart {
-    private final BinaryOperator<Long> operator;
-    private final ExpressionPart first;
-    private final ExpressionPart second;
-
-    public CombinedExpression(BinaryOperator<Long> operator,
-        ExpressionPart first, ExpressionPart second) {
-      this.operator = operator;
-      this.first = first;
-      this.second = second;
-    }
-
-    @Override
-    public long getValue() {
-      return this.operator.apply(first.getValue(), second.getValue());
-    }
-  }
-
-  private static class Value implements ExpressionPart {
-
-    private final long value;
-
-    public Value(long value) {
-      this.value = value;
-    }
-
-    @Override
-    public long getValue() {
-      return this.value;
-    }
-  }
-
-  private interface ExpressionPart {
-    long getValue();
   }
 }
