@@ -33,7 +33,12 @@ public class Day19 implements Day {
 
   @Override
   public void partTwo() {
+    Map<Integer, Rule> rules = getLoopingRules();
+    Rule targetRule = rules.get(0);
 
+    System.out.println(getStrings().stream()
+        .filter(string -> targetRule.matchesForSizes(string).contains(string.length()))
+        .count());
   }
 
   private Collection<String> getStrings() {
@@ -64,6 +69,40 @@ public class Day19 implements Day {
         }
       }
     }
+
+    return rules;
+  }
+
+  private Map<Integer, Rule> getLoopingRules() {
+    Map<Integer, EncodedRule> encodedRules = getEncodedRules();
+    Map<Integer, Rule> rules = new HashMap<>();
+
+    while (!encodedRules.isEmpty()) {
+      for (Map.Entry<Integer, EncodedRule> entry : new HashMap<>(encodedRules).entrySet()) {
+        if (entry.getValue().getDependencies().stream().allMatch(rules::containsKey)) {
+          encodedRules.remove(entry.getKey());
+
+          if (entry.getValue().getRule().contains("|")
+              || entry.getKey() == 8 || entry.getKey() == 11) {
+            rules.put(entry.getKey(), OrRule.fromString(
+                entry.getKey(), entry.getValue().getRule(), rules));
+          } else if (entry.getValue().getRule().contains("\"")) {
+            rules.put(entry.getKey(), PrimitiveRule.fromString(
+                entry.getKey(), entry.getValue().getRule()));
+          } else {
+            rules.put(entry.getKey(), AndRule.fromString(
+                entry.getKey(), entry.getValue().getRule(), rules));
+          }
+        }
+      }
+    }
+
+    ((OrRule) rules.get(8)).updateParts(List.of(
+        new AndRule(-1, List.of(rules.get(42))),
+        new AndRule(-1, List.of(rules.get(42), rules.get(8)))));
+    ((OrRule) rules.get(11)).updateParts(List.of(
+        new AndRule(-1, List.of(rules.get(42), rules.get(31))),
+        new AndRule(-1, List.of(rules.get(42), rules.get(11), rules.get(31)))));
 
     return rules;
   }
@@ -137,7 +176,7 @@ public class Day19 implements Day {
 
     @Override
     public Set<Integer> matchesForSizes(String string) {
-      return string.charAt(0) == target ? Set.of(1) : Set.of();
+      return string.length() > 0 && string.charAt(0) == target ? Set.of(1) : Set.of();
     }
 
     @Override
@@ -188,7 +227,6 @@ public class Day19 implements Day {
         sizes = nextSizes;
       }
 
-//      System.out.println("\"" + string + "\" " + toString() + " -> " + sizes);
       return sizes;
     }
 
@@ -235,12 +273,14 @@ public class Day19 implements Day {
 
     @Override
     public Set<Integer> matchesForSizes(String string) {
-      Set<Integer> result = this.rules.stream()
+      return this.rules.stream()
           .flatMap(andRule -> andRule.matchesForSizes(string).stream())
           .collect(Collectors.toSet());
+    }
 
-//      System.out.println("\"" + string + "\" " + toString() + " -> " + result);
-      return result;
+    public void updateParts(List<AndRule> andRules) {
+      this.rules.clear();
+      this.rules.addAll(andRules);
     }
 
     @Override
