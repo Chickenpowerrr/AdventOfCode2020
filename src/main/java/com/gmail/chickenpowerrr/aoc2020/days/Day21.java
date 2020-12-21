@@ -2,6 +2,7 @@ package com.gmail.chickenpowerrr.aoc2020.days;
 
 import com.gmail.chickenpowerrr.aoc2020.framework.Day;
 import com.gmail.chickenpowerrr.aoc2020.helper.file.FileHelper;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,7 +25,15 @@ public class Day21 implements Day {
 
   @Override
   public void partTwo() {
+    System.out.println(getCanonicalDangerousList());
+  }
 
+  private String getCanonicalDangerousList() {
+    return getPossibleAllergensCauses().entrySet().stream()
+        .map(entry -> new AbstractMap.SimpleEntry<>(entry.getValue().get(0), entry.getKey()))
+        .sorted(Map.Entry.comparingByValue())
+        .map(Map.Entry::getKey)
+        .collect(Collectors.joining(","));
   }
 
   private List<String> getFreeIngredients() {
