@@ -2,8 +2,9 @@ package com.gmail.chickenpowerrr.aoc2020.days;
 
 import com.gmail.chickenpowerrr.aoc2020.framework.Day;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Day23 implements Day {
 
@@ -17,7 +18,8 @@ public class Day23 implements Day {
 
   @Override
   public void partTwo() {
-    System.out.println(gameToString(simulateGame(10_000_000, getExtremeStart())));
+    List<Integer> positions = simulateGame(10_000_000, getExtremeStart());
+    System.out.println((long) positions.get(0) * (long) positions.get(1));
   }
 
   private String gameToString(List<Integer> game) {
@@ -31,18 +33,30 @@ public class Day23 implements Day {
     return result.toString();
   }
 
-  // get
-  // index
-  // size
   private List<Integer> simulateGame(int rounds, List<Integer> start) {
-    List<Integer> position = new ArrayList<>(start);
-    int target = position.get(0);
+    Map<Integer, Integer> position = getGraph(start);
+
+    int target = start.get(0);
     for (int i = 0; i < rounds; i++) {
-      System.out.println(i);
-      position = simulateRound(position, target);
-      target = position.get((position.indexOf(target) + 1) % position.size());
+      simulateRound(position, target);
+      target = position.get(target);
     }
-    return position;
+
+    List<Integer> result = new ArrayList<>();
+    result.add(position.get(1));
+    for (int i = 1; i < position.size(); i++) {
+      result.add(position.get(result.get(result.size() - 1)));
+    }
+
+    return result;
+  }
+
+  private Map<Integer, Integer> getGraph(List<Integer> start) {
+    Map<Integer, Integer> graph = new HashMap<>();
+    for (int i = 0; i < start.size(); i++) {
+      graph.put(start.get(i), start.get((i + 1) % start.size()));
+    }
+    return graph;
   }
 
   private List<Integer> getStart() {
@@ -65,35 +79,23 @@ public class Day23 implements Day {
     return start;
   }
 
-  // index
-  // get
-  // size
-  // removeAll
-  // addAll
-  private List<Integer> simulateRound(List<Integer> position, Integer target) {
-    List<Integer> nextPosition = new LinkedList<>(position);
-
-    int targetIndex = position.indexOf(target);
-    List<Integer> moving = new LinkedList<>();
-
-    for (int i = 1; i <= 3; i++) {
-      moving.add(position.get((targetIndex + i) % position.size()));
+  private void simulateRound(Map<Integer, Integer> position, Integer target) {
+    List<Integer> moving = new ArrayList<>();
+    int movingCursor = target;
+    for (int i = 0; i < 3; i++) {
+      movingCursor = position.get(movingCursor);
+      moving.add(movingCursor);
     }
 
-    nextPosition.removeAll(moving);
-
-    int next = (target + position.size() - 1) % position.size();
-    next = next == 0 ? position.size() : next;
-    for (int i = 0; i < position.size(); i++) {
-      if (moving.contains(next)) {
-        next = (next + position.size() - 1) % position.size();
-        next = next == 0 ? position.size() : next;
-      }
+    int movePosition = (target + position.size() - 1) % position.size();
+    movePosition = movePosition == 0 ? position.size() : movePosition;
+    while (moving.contains(movePosition)) {
+      movePosition = (movePosition + position.size() - 1) % position.size();
+      movePosition = movePosition == 0 ? position.size() : movePosition;
     }
 
-    int movingIndex = nextPosition.indexOf(next) + 1;
-    nextPosition.addAll(movingIndex, moving);
-
-    return nextPosition;
+    position.put(target, position.get(moving.get(moving.size() - 1)));
+    position.put(moving.get(moving.size() - 1), position.get(movePosition));
+    position.put(movePosition, moving.get(0));
   }
 }
